@@ -222,5 +222,5 @@ result_df = pd.concat([reddit_dataset, reddit_predictions_df], axis=1)
 
 
 # Save the result to a CSV file
-result_df.to_csv('data/predicted_dataset.csv', index=False)
+result_df.to_csv('data/predicted_dataset_probs.csv', index=False)
 
