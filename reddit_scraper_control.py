@@ -7,7 +7,7 @@ import random
 
 # Initialize PRAW with Reddit application credentials (enter secret key in client_secret)
 reddit = praw.Reddit(client_id='lfzq1sMXmgnKvLP_DEGR7A',
-                     client_secret='6_DpOo9sowX4SDGXMdqUzR5zaRawgg',
+                     client_secret='Enter secret key',
                      user_agent='Depression Linguist Analyzer/1.0 by Ok-Leading-6463')
 
 
