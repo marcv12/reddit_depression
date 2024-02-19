@@ -7,7 +7,7 @@ import random
 
 # Initialize PRAW with Reddit application credentials (enter secret key in client_secret)
 reddit = praw.Reddit(client_id='lfzq1sMXmgnKvLP_DEGR7A',
-                     client_secret='Enter secret',
+                     client_secret='6_DpOo9sowX4SDGXMdqUzR5zaRawgg',
                      user_agent='Depression Linguist Analyzer/1.0 by Ok-Leading-6463')
 
 
@@ -133,9 +133,16 @@ df['post'] = df['post'].apply(lambda x: re.sub(r'[^a-zA-Z0-9\s]', '', x).lower()
 df['post'] = df['post'].apply(lambda x: re.sub(r'\s+', ' ', x).strip())
 
 # Remove rows with empty post text
-df = df[df['post'].str.len() > 0]
+df = df[df['post'].str.len() > 15]
 
-df = df[["post", "pandemic_period"]]
+
+# Find the minimum count of pre-pandemic and post-pandemic posts
+min_count = df['pandemic_period'].value_counts().min()
+
+# Create a balanced dataframe
+df_balanced = df.groupby('pandemic_period').apply(lambda x: x.sample(min_count)).reset_index(drop=True)
+
+df = df_balanced[["post", "pandemic_period"]]
 
 # Save the DataFrame to a CSV file
 df.to_csv("data/reddit_control_posts.csv", index=False)
