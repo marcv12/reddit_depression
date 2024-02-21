@@ -10,7 +10,7 @@ import pandas as pd
 from joblib import dump
 
     
-X, y = load_data()
+X, y = load_data("experimental")
 
 # Specifying test ratio
 test_ratio = 0.15
@@ -50,11 +50,11 @@ opt= GridSearchCV(pipe, parameters, scoring='accuracy', verbose=3, return_train_
 opt.fit(X_train, y_train)
 # Saving the grid search result into a CSV file
 results = pd.DataFrame.from_dict(opt.cv_results_)
-results.to_csv("results/sklearn/gridsearch_result.csv", index=False)
+results.to_csv("/results/sklearn/gridsearch_result.csv", index=False)
 # Retrieving the best model from grid search and saving it in a file
 print(f"Best Parameters : {opt.best_params_} with Average Validation Accuracy of {opt.best_score_}")
 best_model = opt.best_estimator_
-dump(best_model, "results/sklearn/best_model.joblib")
+dump(best_model, "/results/sklearn/best_model.joblib")
 # Using the best model to make predictions on the test dataset, and then computing the accuracy
 y_pred = best_model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
