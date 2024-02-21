@@ -8,8 +8,11 @@ from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from tqdm.auto import tqdm
 import pandas as pd
+import random
 
 
+
+np.random.seed(42)
 # Load tokenizer
 tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-emotion")
 
@@ -223,4 +226,79 @@ result_df = pd.concat([reddit_dataset, reddit_predictions_df], axis=1)
 
 # Save the result to a CSV file
 result_df.to_csv('data/predicted_dataset_probs.csv', index=False)
+
+
+
+#Do the same for the control group
+# Now, use our fine-tuned model to predict the emotions in the Reddit data
+reddit_dataset_control = pd.read_csv('data/reddit_control_posts.csv')
+
+# Tokenise the Reddit posts
+class RedditDatasetControl(Dataset):
+    def __init__(self, texts, tokenizer, max_length):
+        self.tokenizer = tokenizer
+        self.texts = texts
+        self.max_length = max_length
+
+    def __len__(self):
+        return len(self.texts)
+    
+    def __getitem__(self, idx):
+        text = str(self.texts[idx])
+        inputs = self.tokenizer.encode_plus(
+            text,
+            None,
+            add_special_tokens=True,
+            max_length=self.max_length,
+            padding="max_length",
+            return_token_type_ids=True,
+            truncation=True,
+            return_attention_mask=True,
+            return_tensors='pt',
+        )
+        return {
+            'input_ids': inputs['input_ids'].flatten(),
+            'attention_mask': inputs['attention_mask'].flatten()
+        }
+    
+# Create a DataLoader for the Reddit dataset
+reddit_data_control = RedditDatasetControl(reddit_dataset_control.post, tokenizer, max_length=128)
+reddit_loader = DataLoader(reddit_data_control, batch_size=16, shuffle=False)
+
+
+# Make predictions
+def predict(model, data_loader):
+    model.eval()
+    predictions = []
+    print(f'Making predictions using device: {device}')
+
+
+    with torch.no_grad():
+        for batch in data_loader:
+            batch = {k: v.to(device) for k, v in batch.items()}
+            outputs = model(**batch)
+            logits = outputs.logits
+            pred_labels = logits.sigmoid().cpu().numpy()
+            predictions.append(pred_labels)
+
+    return np.vstack(predictions)
+
+
+# Get the predictions
+reddit_predictions = predict(model, reddit_loader)
+
+
+# Convert the predictions to a DataFrame
+reddit_predictions_df = pd.DataFrame(reddit_predictions, columns=train_df.columns[1:])
+print(reddit_predictions_df.head())
+
+# Concatenate the original dataset with the predictions
+result_df = pd.concat([reddit_dataset_control, reddit_predictions_df], axis=1)
+
+
+result_df.drop(["post"], axis = 1)
+
+
+# Save the result to a CSV file
+result_df.to_csv('data/predicted_dataset_control_probs.csv', index=False)
 
