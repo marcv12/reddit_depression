@@ -6,9 +6,9 @@ from sklearn.preprocessing import LabelEncoder
 def load_data(group):
     
     if group == "experimental":
-        file = "data/predicted_dataset_probs.csv"
+        file = "../data/predicted_dataset_probs.csv"
     else:
-        file = "data/reddit_control_posts.csv"
+        file = "../data/predicted_dataset_control_probs.csv"
         
     dataset = pd.read_csv(file, sep=",")
     X = dataset[["anger","brain dysfunction (forget)","emptiness","hopelessness","loneliness","sadness","suicide intent","worthlessness"]]
