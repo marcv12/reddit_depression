@@ -75,12 +75,14 @@ def get_args():
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--batch_size', nargs="?", type=int, default=32, help='Batch_size for experiment')
+    parser.add_argument('--batch_size', nargs="?", type=int, default=64, help='Batch_size for experiment')
     parser.add_argument('--lr', nargs="?", type=float,  default = 1e-3, help = "Learning rate for experiment")
-    parser.add_argument('--epochs', nargs="?", type=int, default=50, help = "Number of epoch for experiment")
-    parser.add_argument('--hidden_dim', nargs="?", type=list_of_ints, default=[4, 2], help = "Hidden layers for experiment")
+    parser.add_argument('--epochs', nargs="?", type=int, default=200, help = "Number of epoch for experiment")
+    parser.add_argument('--hidden_dim', nargs="?", type=list_of_ints, default=[ 4, 2], help = "Hidden layers for experiment")
     parser.add_argument('--activation', nargs="?", type=str, default="LeakyReLU", help = "Activation function for experiment")
     parser.add_argument('--model_id', nargs="?", type=int, default=1, help = "Model ID")
+    parser.add_argument('--dropout', nargs="?", type=float, default=0.2, help = "Dropout Probability")
+    parser.add_argument('--l2_lambda', nargs="?", type=float, default=0.01, help = "Weight Decay for L2 Regularisation")
     args = parser.parse_args()
 
     return args
@@ -103,7 +105,8 @@ def plot_training(train_data, valid_data, metric):
     plt.legend()
     plt.show()  
 
-torch.manual_seed(20)
+
+torch.manual_seed(100)
 
 # Defining the hyperparameters for the classifier
 args = get_args()
@@ -113,24 +116,35 @@ num_epochs = args.epochs
 hidden_dim = args.hidden_dim
 activation_name = args.activation
 model_id = args.model_id
+dropout = args.dropout
+weight_decay = args.l2_lambda
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Loading the experimental dataset as a Dataset object
 dataset = CovidDataset("experimental")
+print("Original Size : ", dataset.y.shape)
+
 # Splitting experimental dataset into train, validation and test set
-train_set, valid_set, test_set = random_split(dataset, [0.7, 0.15, 0.15])
-# Training mean and dtd used for normalising the data
+train_set, valid_set, test_set = random_split(dataset, [0.8, 0.1, 0.1])
+# Training mean and std used for normalising the data
 train_mean = torch.mean(train_set.dataset.X[train_set.indices], dim=0)
 train_std = torch.std(train_set.dataset.X[train_set.indices], dim=0)
 
+for data in [train_set, valid_set, test_set]:
+    idx = data.indices
+    y = data.dataset.y[idx]
+    print(y.shape)
+    for era in [0, 1]:
+        print((y == era).sum())
+        
 train_loader = DataLoader(train_set, batch_size= batch_size, shuffle=True)
 valid_loader = DataLoader(valid_set, batch_size= batch_size, shuffle=True)
 test_loader = DataLoader(test_set, batch_size= batch_size, shuffle=True)
 
 # Defining the model to be trained nad evaluated, the loss function and optimiser to use
-model = EraClassifier(hidden_dim, activation_name)
+model = EraClassifier(hidden_dim, activation_name, dropout)
 loss = nn.BCELoss()
-optimizer = optim.Adam(model.parameters(),lr = learning_rate)
+optimizer = optim.Adam(model.parameters(),lr = learning_rate, weight_decay=weight_decay)
 
 # Defining the variables to track while training and evaluating them model
 total_losses = {"train_loss" : [], "train_accuracy" : [], "valid_loss" : [], "valid_accuracy" : []}
@@ -146,7 +160,6 @@ for epoch_idx in range(num_epochs):
     with tqdm.tqdm(total = len(train_loader)) as pbar_train:
         # Training the model on each batch in the training data
         for (X,  y) in train_loader:  
-            # Normalising the training data with training mean and std
             X = (X.to(device) - train_mean) / train_std
             y = y.to(device)
             
@@ -174,7 +187,6 @@ for epoch_idx in range(num_epochs):
     with tqdm.tqdm(total = len(valid_loader)) as pbar_valid:
         # Validating the model on each batch in the validation data
         for (X, y) in valid_loader:      
-            # Normalising the validation data with training mean and std
             X = (X.to(device) - train_mean) / train_std
             y = y.to(device)
             
@@ -225,7 +237,6 @@ model.eval()
 with tqdm.tqdm(total=len(test_loader)) as pbar_test:
     # Testing the model on each batch in the test data
     for (X, y) in test_loader:
-        # Normalising the test data with training mean and std
         X = (X.to(device) - train_mean) / train_std
         y = y.to(device)
         

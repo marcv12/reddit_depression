@@ -1,8 +1,8 @@
 import torch.nn as nn
-from torch.nn import Linear,Sigmoid, BatchNorm1d, LeakyReLU, PReLU
+from torch.nn import Linear,Sigmoid, BatchNorm1d, LeakyReLU, PReLU, Dropout
 
 class EraClassifier(nn.Module):
-    def __init__(self, hidden_dim, activation_name):
+    def __init__(self, hidden_dim, activation_name, dropout):
         """
         
         Function that initialises the era classifier
@@ -28,11 +28,12 @@ class EraClassifier(nn.Module):
                 activation = LeakyReLU()
             
             # Adding the hidden layer to the list of layers
-            hidden_layer = [Linear(current_features,next_features), BatchNorm1d(next_features), activation]
+            hidden_layer = [Linear(current_features,next_features), BatchNorm1d(next_features), Dropout(p= dropout), activation]
             layers += hidden_layer
-            
+        
         # Adding the final binary classification layer to the list
         layers += [Linear(hidden_dim[-1], 1), Sigmoid()]
+
         self.model = nn.Sequential(*layers)
     
         

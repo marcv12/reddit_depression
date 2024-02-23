@@ -9,8 +9,6 @@ from sklearn.model_selection import GridSearchCV
 import pandas as pd
 import numpy as np
 from joblib import dump,load
-import matplotlib.pyplot as plt
-from scipy.stats import mannwhitneyu
 
 # Specifying data to load, i.e either Experimental or Control
 X, y = load_data("experimental")
