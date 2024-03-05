@@ -6,12 +6,20 @@ from sklearn.preprocessing import LabelEncoder
 def load_data(group):
     
     if group == "experimental":
-        file = "data/predicted_dataset_probs.csv"
+        file = "../data/predicted_dataset_probs.csv"
     else:
-        file = "data/reddit_control_posts.csv"
+        file = "../data/predicted_dataset_control_probs.csv"
         
     dataset = pd.read_csv(file, sep=",")
     X = dataset[["anger","brain dysfunction (forget)","emptiness","hopelessness","loneliness","sadness","suicide intent","worthlessness"]]
+    
+    #Q1 = X.quantile(0.25)
+    #Q3 = X.quantile(0.75)
+    #IQR = Q3 - Q1
+    #X = X[~((X < (Q1 - 1.5 * IQR)) | (X > (Q3 + 1.5 * IQR))).any(axis=1)]
+    #X_idx = X.index
+    #y = dataset['pandemic_period'][X_idx]
+
     encoder = LabelEncoder()
     y = encoder.fit_transform(dataset['pandemic_period'])
     
@@ -31,5 +39,3 @@ class CovidDataset(Dataset):
     
     def __getitem__(self, index):
         return self.X[index], self.y[index]
-
-        
