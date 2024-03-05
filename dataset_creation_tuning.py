@@ -16,33 +16,13 @@ def load_dataset(path):
                 continue
     return pd.DataFrame(data)
 
-df = load_dataset('data/train.json')
+df_train = load_dataset('data/train.json')
+df_val = load_dataset('data/val.json')
+df_test = load_dataset('data/test.json')
 
 # Set the option to display all columns
 pd.set_option('display.max_columns', None)
 
-
-df = df[["post", "emotions"]]
-
-print(df.head())
-
-# Initialize MultiLabelBinarizer
-mlb = MultiLabelBinarizer()
-
-# Transform the 'emotions' column to a binary matrix
-binary_matrix = mlb.fit_transform(df['emotions'])
-
-# Create a new DataFrame from the binary matrix
-emotions_df = pd.DataFrame(binary_matrix, columns=mlb.classes_)
-
-print(emotions_df.head())
-
-# Concatenate the original DataFrame with the new DataFrame
-df = pd.concat([df, emotions_df], axis=1)
-
-df = df.drop(["emotions"], axis=1)
-
-# data preprocessing
 # Function to remove URLs
 def remove_urls(text):
     # Regular expression pattern for matching URLs
@@ -51,26 +31,50 @@ def remove_urls(text):
     no_url_text = re.sub(url_pattern, '', text)
     return no_url_text
 
-# Apply the function to each text entry
-df['post'] = df['post'].apply(remove_urls)
+
+# Function to preprocess the DataFrame
+def preprocess_df(df):
+    df = df[["post", "emotions"]]
+    # Initialize MultiLabelBinarizer
+    mlb = MultiLabelBinarizer()
+
+    # Transform the 'emotions' column to a binary matrix
+    binary_matrix = mlb.fit_transform(df['emotions'])
+
+    # Create a new DataFrame from the binary matrix
+    emotions_df = pd.DataFrame(binary_matrix, columns=mlb.classes_)
+
+    # Concatenate the original DataFrame with the new DataFrame
+    df = pd.concat([df, emotions_df], axis=1)
+
+    df = df.drop(["emotions"], axis=1)
+
+    # Apply the function to each text entry
+    df['post'] = df['post'].apply(remove_urls)
+
+    # remove special characters and lowercase the text
+    df['post'] = df['post'].apply(lambda x: re.sub(r'[^a-zA-Z0-9\s]', '', x).lower()) 
+
+    # remove extra whitespaces
+    df['post'] = df['post'].apply(lambda x: re.sub(r'\s+', ' ', x).strip())
+
+    return df
+
+# Load the datasets
+train_df = load_dataset('data/train.json')
+val_df = load_dataset('data/val.json')
+test_df = load_dataset('data/test.json')
 
 
-# remove special characters and lowercase the text
-df['post'] = df['post'].apply(lambda x: re.sub(r'[^a-zA-Z0-9\s]', '', x).lower()) 
 
-# remove extra whitespaces
-df['post'] = df['post'].apply(lambda x: re.sub(r'\s+', ' ', x).strip())
+# Preprocess the datasets
+train_df = preprocess_df(train_df)
+val_df = preprocess_df(val_df)
+test_df = preprocess_df(test_df)
 
-
-#Save the DataFrame to a CSV file
-df.to_csv("data/fine_tuning_data.csv", index=False) 
-
-df_train = df.sample(frac=0.8, random_state=42)
-df_test = df.drop(df_train.index)
-
-train_df, val_df = train_test_split(df_train, test_size=0.2, random_state=42)
 
 train_df.to_csv("data/fine_tuning_train.csv", index=False)
-val_df.to_csv("data/fine_tuning_test.csv", index=False)
+val_df.to_csv("data/fine_tuning_val.csv", index=False)
+test_df.to_csv("data/fine_tuning_test.csv", index=False)
 
 

@@ -4,12 +4,19 @@ import pandas as pd
 from scipy import stats
 from scipy.stats import mannwhitneyu
 import numpy as np
+import argparse
 
 
-print("Significance tests pre/post on control group")
 
-df = pd.read_csv("data/predicted_dataset_probs.csv")
+# Argument parser
+parser = argparse.ArgumentParser(description="Perform statistical tests on a dataset")
+parser.add_argument("file_path", type=str, help="Path to the dataset file")
+args = parser.parse_args()
 
+
+df = pd.read_csv(args.file_path)
+
+group = "experimental" if "predicted_dataset_probs.csv" in args.file_path else "control"
 
 
 # Define emotions columns
@@ -68,7 +75,7 @@ for emotion in emotions:
     # Store the results
     results.append((emotion, stat, p))
 
-print("\n\nMann-Whitney-U test pre/post experimental: \n")
+print(f'\n\nMann-Whitney-U test pre/post {group}: \n')
 # Print the results
 for emotion, stat, p in results:
     print(f"{emotion}: U-statistic={stat:.3f}, p-value={p:.4f}")

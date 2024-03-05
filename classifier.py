@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 
-df = pd.read_csv("data/predicted_dataset_probs.csv")
+df = pd.read_csv("data/predicted_dataset.csv")
 
 # Select numeric columns
 numeric_cols = df.select_dtypes(include=[np.number]).columns

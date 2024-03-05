@@ -9,6 +9,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from tqdm.auto import tqdm
 import pandas as pd
 import random
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 
@@ -21,8 +22,36 @@ model = RobertaForSequenceClassification.from_pretrained("cardiffnlp/twitter-rob
                                                          problem_type="multi_label_classification")
 
 
+# Set the new dropout rate
+new_dropout_rate = 0.45
+
+# Access the dropout layer within the classification head and set the new dropout rate
+model.classifier.dropout.p = new_dropout_rate
+
+
+# Freeze all layers first
+for param in model.roberta.parameters():
+    param.requires_grad = False
+
+# Unfreeze the last 2 layers
+num_layers = len(model.roberta.encoder.layer)  # Get the total number of layers
+print(f'total number of layers of Roberta model: {num_layers}')
+layers_to_unfreeze = 2  # Specify the number of layers to unfreeze
+
+for layer in model.roberta.encoder.layer[num_layers - layers_to_unfreeze:]:
+    for param in layer.parameters():
+        param.requires_grad = True
+
+# Ensure the classifier layer remains unfrozen
+for param in model.classifier.parameters():
+    param.requires_grad = True
+
+
+
 # Adjust the model's classifier for 8 labels
 model.classifier.out_proj = torch.nn.Linear(model.classifier.out_proj.in_features, 8)
+
+
 
 #Prepare the dataset
 # Define the EmotionDataset class
@@ -70,8 +99,8 @@ val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
 
 
-# Optimizer and loss function
-optimizer = AdamW(model.parameters(), lr=5e-5)
+# Optimizer and loss function with weight
+optimizer = AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=5e-5, weight_decay=9e-1)
 loss_fn = BCEWithLogitsLoss()
 
 # Number of training epochs
@@ -80,40 +109,20 @@ epochs = 10
 # Total number of training steps is [number of batches] * [number of epochs]
 total_steps = len(train_loader) * epochs
 
-# Create the learning rate scheduler
+# Use ReduceLROnPlateau scheduler
 scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)
 
+# Early stopping parameters
+n_epochs_stop = 4
+min_val_loss = np.Inf
+epochs_no_improve = 0
 
 # Training loop, for mac conda install pytorch torchvision -c pytorch-nightly
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 print(device)
 model.to(device)
 
-for epoch_i in range(epochs):
-    print(f"Epoch {epoch_i + 1} of {epochs}")
-    total_loss = 0  
 
-    model.train()
-
-    for step, batch in enumerate(tqdm(train_loader, desc="Iteration")):
-        # Move batch to device
-        batch = {k: v.to(device) for k, v in batch.items()}
-
-        outputs = model(**batch)
-        loss = outputs.loss if outputs.loss is not None else loss_fn(outputs.logits, batch["labels"])
-
-        total_loss += loss.item()
-
-        # Perform a backward pass to calculate the gradients
-        loss.backward() # Calculate the gradients
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0) # Clip the norm of the gradients to 1.0 to prevent the "exploding gradients" problem
-
-        optimizer.step() # Update the model's parameters
-        scheduler.step() # Update the learning rate
-        model.zero_grad() # Clear the gradients
-
-    avg_train_loss = total_loss / len(train_loader) # Calculate the average loss over all of the batches
-    print(f"Average training loss: {avg_train_loss}")   
 
 
 # Evaluation loop
@@ -147,10 +156,56 @@ def evaluate(model, val_loader):
     return val_loss / len(val_loader), mae, rmse
 
 
-val_loss, mae, rmse = evaluate(model, val_loader)
-print(f"Validation Loss: {val_loss}")
-print(f"MAE: {mae}")
-print(f"RMSE: {rmse}")
+for epoch_i in range(epochs):
+    print(f"Epoch {epoch_i + 1} of {epochs}")
+    total_loss = 0  
+
+    model.train()
+
+    for step, batch in enumerate(tqdm(train_loader, desc="Iteration")):
+        # Move batch to device
+        batch = {k: v.to(device) for k, v in batch.items()}
+
+        outputs = model(**batch)
+        loss = outputs.loss if outputs.loss is not None else loss_fn(outputs.logits, batch["labels"])
+
+        total_loss += loss.item()
+
+        # Perform a backward pass to calculate the gradients
+        loss.backward() # Calculate the gradients
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0) # Clip the norm of the gradients to 1.0 to prevent the "exploding gradients" problem
+
+        optimizer.step() # Update the model's parameters
+        model.zero_grad() # Clear the gradients
+        scheduler.step() # Update the learning rate
+
+    avg_train_loss = total_loss / len(train_loader) # Calculate the average loss over all of the batches
+    print(f"Average training loss: {avg_train_loss}") 
+
+
+    # After each epoch, evaluate the model on the validation set
+    val_loss, mae, rmse = evaluate(model, val_loader)
+    print(f"Validation Loss: {val_loss}")
+    print(f"MAE: {mae}")
+    print(f"RMSE: {rmse}")
+
+    
+
+    # If the validation loss is at a new minimum, save the model
+    if val_loss < min_val_loss:
+        epochs_no_improve = 0
+        min_val_loss = val_loss
+        torch.save(model.state_dict(), 'best_model.pt')
+    else:
+        # If the validation loss did not improve, increment the count of epochs with no improvement
+        epochs_no_improve += 1
+        # If the count of epochs with no improvement is large enough, stop training
+        if epochs_no_improve >= n_epochs_stop:
+            print('Early stopping!')
+            # Load the best state dict (lowest validation loss)
+            model.load_state_dict(torch.load('best_model.pt'))
+            break
+    
 
 
 
