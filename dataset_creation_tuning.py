@@ -2,7 +2,6 @@ import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 import json
 import regex as re
-from sklearn.model_selection import train_test_split
 
 
 # Modified function to load a JSON file with multiple JSON objects
