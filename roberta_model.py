@@ -104,7 +104,7 @@ optimizer = AdamW(filter(lambda p: p.requires_grad, model.parameters()), lr=5e-5
 loss_fn = BCEWithLogitsLoss()
 
 # Number of training epochs
-epochs = 10
+epochs = 100
 
 # Total number of training steps is [number of batches] * [number of epochs]
 total_steps = len(train_loader) * epochs
@@ -112,7 +112,10 @@ total_steps = len(train_loader) * epochs
 # Create the learning rate scheduler
 scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)
 
-
+# Early stopping parameters
+n_epochs_stop = 6
+min_val_loss = np.Inf
+epochs_no_improve = 0
 
 # Evaluation loop
 def evaluate(model, val_loader, threshold=0.5):
@@ -178,7 +181,22 @@ for epoch_i in range(epochs):
 
     # Evaluate on the validation set after each epoch
     val_loss, _, _, _ = evaluate(model, val_loader)
-    print(f"Validation Loss: {val_loss}")   
+    print(f"Validation Loss: {val_loss}")
+
+    # If the validation loss is at a new minimum, save the model
+    if val_loss < min_val_loss:
+        epochs_no_improve = 0
+        min_val_loss = val_loss
+        torch.save(model.state_dict(), 'best_model.pt')
+    else:
+        # If the validation loss did not improve, increment the count of epochs with no improvement
+        epochs_no_improve += 1
+        # If the count of epochs with no improvement is large enough, stop training
+        if epochs_no_improve >= n_epochs_stop:
+            print('Early stopping!')
+            # Load the best state dict (lowest validation loss)
+            model.load_state_dict(torch.load('best_model.pt'))
+            break   
 
 
 
