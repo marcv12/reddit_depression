@@ -76,6 +76,8 @@ By following these steps and using the provided scripts in the specified order, 
 
 - **statistical_tests_new.py:** This script performs statistical tests on the predicted datasets. It takes a command-line argument to specify the path of either the control group dataset ("predicted_dataset_control.csv") or the experimental group dataset ("predicted_dataset.csv"). The script outputs the results of the statistical tests for the specified group.
 
+- **statistical_tests.py** You should run this script only if you go for the "roberta_model_probs.py" script.
+
 ### Data Folder
 Contains several key files to start and the rest will be generated using the scripts during the project:
 
