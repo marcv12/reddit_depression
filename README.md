@@ -1,4 +1,7 @@
-# Impact of COVID-19 on Linguistic Expression of Depression in Online Communities
+<documents>
+<document index="1">
+<source>paste.txt</source>
+<document_content># Impact of COVID-19 on Linguistic Expression of Depression in Online Communities
 
 ## Research Question
 This project aims to investigate how the COVID-19 pandemic has impacted the linguistic expression of depression in online communities, specifically on Reddit. We focus on identifying whether deep learning models can effectively discern and differentiate between linguistic expression patterns of depression pre- and post-pandemic.
@@ -30,6 +33,34 @@ Comparisons
 - **Statistical Analysis:** In addition to fitting binary classifiers, perform statistical tests (t-test, ANOVA, chi-square...) to account for significant shifts pre vs post covid, but also in control vs experimental group to isolate depression as the sole factor in emotion change.
 
 
+## Reproducibility
+To ensure reproducibility of the experiments, it is important to note that the original dataset consists of three JSON files: "train.json", "validation.json", and "test.json", which correspond to the DepressionEmo datasets. The following steps outline the process of running the experiments:
+
+1. Dataset Preprocessing:
+   - Run the "dataset_creation_tuning.py" file to preprocess the original JSON files. 
+   - This script will generate the following CSV files in the "data" folder:
+     - "fine_tuning_train.csv"
+     - "fine_tuning_val.csv"  
+     - "fine_tuning_test.csv"
+
+2. Reddit Data Scraping:
+   - Scrape the Reddit data for the control group using the "reddit_scraper_control.py" script.
+   - Scrape the Reddit data for the experimental group using the "reddit_scraper.py" script.
+   - The scraped data will be saved as "reddit_control_posts.csv" and "reddit_depression_posts.csv" in the "data" folder.
+
+3. Fine-tuning the RoBERTa Model:
+   - Run the "roberta_model.py" file to fine-tune the RoBERTa model on the DepressionEmo datasets.
+   - The script will generate predictions on the scraped Reddit data.
+   - The predicted datasets will be saved as "predicted_dataset_control.csv" and "predicted_dataset.csv" in the "data" folder.
+
+4. Statistical Tests:
+   - Run the "statistical_test_new.py" file to perform the statistical tests.
+   - Use a command-line argument to specify the path of either the control group dataset ("predicted_dataset_control.csv") or the experimental group dataset ("predicted_dataset.csv").
+   - The script will output the results of the statistical tests for the specified group.
+
+By following these steps and using the provided scripts in the specified order, the experiments can be reproduced using the original DepressionEmo datasets and the scraped Reddit data. The intermediate files generated during the process ensure that each step can be verified and the results can be replicated.
+
+
 ## Coding files description
 
 ### Scripts
@@ -59,5 +90,6 @@ Contains several key files used and generated during the project:
 - **reddit_predictions.csv:** Results of applying emotion detection models to the scraped Reddit datasets, offering insights into the prevalence and distribution of emotions in pre- and post-pandemic expressions of depression.
 
 
-### Additional Files
-**Miniconda3-latest-MacOSX-arm64.sh:** A script to install Miniconda, facilitating the use of a GPU for the Roberta model training. This tool is crucial for efficiently handling the computational demands of deep learning models.
+</document_content>
+</document>
+</documents>

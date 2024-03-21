@@ -21,6 +21,7 @@ group = "experimental" if "predicted_dataset.csv" in args.file_path else "contro
 print(f"Significance tests pre/post on {group} group")
 
 emotions = ['anger', 'brain dysfunction (forget)', 'emptiness', 'hopelessness', 'loneliness', 'sadness', 'suicide intent', 'worthlessness']
+emotions_label = ['anger', 'forgetfulness', 'emptiness', 'hopelessness', 'loneliness', 'sadness', 'suicide intent', 'worthlessness']
 
 # Results placeholder
 mann_whitney_results = []
@@ -58,15 +59,15 @@ pre_means = df[df['pandemic_period'] == 'pre-pandemic'][emotions].mean()
 post_means = df[df['pandemic_period'] == 'post-pandemic'][emotions].mean()
 
 # Visualization
-fig, ax = plt.subplots(figsize=(12, 8))
+fig, ax = plt.subplots(figsize=(14, 10))
 x = np.arange(len(emotions))
 width = 0.35
 ax.bar(x - width/2, pre_means, width, label='Pre-pandemic')
 ax.bar(x + width/2, post_means, width, label='Post-pandemic')
 ax.set_ylabel('Proportion')
-ax.set_title(f'Proportion of Posts Expressing Each Emotion by Pandemic Period for {group} Group')
+#ax.set_title(f'Proportion of Posts Expressing Each Emotion by Pandemic Period for {group} Group')
 ax.set_xticks(x)
-ax.set_xticklabels(emotions, rotation=45, ha="right", fontsize=7.5)
+ax.set_xticklabels(emotions_label, rotation=45, ha="right", fontsize=12)
 ax.legend()
 plt.tight_layout()
 plt.show()

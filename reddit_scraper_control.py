@@ -3,11 +3,19 @@ import pandas as pd
 from datetime import datetime
 import regex as re
 import random
+import spacy
+from presidio_analyzer import AnalyzerEngine
+from presidio_anonymizer import AnonymizerEngine
+from presidio_anonymizer.entities.engine import RecognizerResult, OperatorConfig
+
+
+analyzer = AnalyzerEngine()
+anonymizer = AnonymizerEngine()
 
 
 # Initialize PRAW with Reddit application credentials (enter secret key in client_secret)
 reddit = praw.Reddit(client_id='lfzq1sMXmgnKvLP_DEGR7A',
-                     client_secret='Enter secret key',
+                     client_secret='Enter Secret Key',
                      user_agent='Depression Linguist Analyzer/1.0 by Ok-Leading-6463')
 
 
@@ -114,16 +122,47 @@ df = df.sample(frac=1, random_state=2).reset_index(drop=True)
 
 
 # data preprocessing
-# Function to remove URLs
-def remove_urls(text):
-    # Regular expression pattern for matching URLs
-    url_pattern = r'https?://\S+|www\.\S+'
-    # Substitute found URLs with an empty string
-    no_url_text = re.sub(url_pattern, '', text)
-    return no_url_text
+# Updated function to remove URLs, dates, and specific locations
+def remove_urls_dates_locations(text):
+    # Remove URLs
+    text = re.sub(r'https?://\S+|www\.\S+', '', text)
+    # Basic pattern to match dates (e.g., "March 5", "2020-03-11", "03/11/2020")
+    text = re.sub(r'\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?|\d{1,2})[\/\-,\s]*(?:\d{1,2}[\/\-,\s]*)?(?:\d{2,4})?\b', '[DATE]', text)
+    # This is a very basic and not comprehensive way to handle locations and dates. For more sophisticated anonymization, consider NER or other methods.
+    return text
+
+
+#Function to anonymize named entities like persons, locations, and organizations
+# Load the language model
+nlp = spacy.load("en_core_web_sm")
+
+# def anonymize_named_entities(text):
+#     doc = nlp(text)
+#     anonymized_text = text
+#     for ent in doc.ents:
+#         if ent.label in ["PERSON", "GPE", "ORG", "LOC"]:
+#             anonymized_text = anonymized_text.replace(ent.text, '[' + ent.label_ + ']')
+#     return anonymized_text
+
+
+def anonymize_named_entities(text):
+    analysis_results = analyzer.analyze(text=text, language='en')
+    anonymized_result = anonymizer.anonymize(
+        text=text, 
+        analyzer_results=analysis_results,
+        operators = {
+    "PERSON": OperatorConfig("redact", {}),
+    "LOCATION": OperatorConfig("replace", {"new_value": "Springfield"}),
+    "ORGANIZATION": OperatorConfig("replace", {"new_value": "ACME Corp"})
+}
+    )
+    return anonymized_result.text
+
+
 
 # Apply the function to each text entry
-df['post'] = df['post'].apply(remove_urls)
+df['post'] = df['post'].apply(remove_urls_dates_locations)
+df['post'] = df['post'].apply(anonymize_named_entities)
 
 
 # remove special characters and lowercase the text

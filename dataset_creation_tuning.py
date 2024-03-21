@@ -61,8 +61,8 @@ def preprocess_df(df):
 
 # Load the datasets
 train_df = load_dataset('data/train.json')
-val_df = load_dataset('data/val.json')
-test_df = load_dataset('data/test.json')
+val_df = load_dataset('data/test.json')
+test_df = load_dataset('data/val.json')
 
 
 
