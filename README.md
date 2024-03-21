@@ -1,6 +1,7 @@
 <documents>
 <document index="1">
-<document_content># Impact of COVID-19 on Linguistic Expression of Depression in Online Communities
+<document_content>
+# Impact of COVID-19 on Linguistic Expression of Depression in Online Communities
 
 ## Research Question
 This project aims to investigate how the COVID-19 pandemic has impacted the linguistic expression of depression in online communities, specifically on Reddit. We focus on identifying whether deep learning models can effectively discern and differentiate between linguistic expression patterns of depression pre- and post-pandemic.
