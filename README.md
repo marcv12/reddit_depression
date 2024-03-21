@@ -30,7 +30,7 @@ This research is novel as it delves into the specific linguistic changes in expr
 ### Comparisons
 Comparisons
 - **Experimental vs. Control Posts:** Analyze the distribution of posts expressing depression-related sentiments before and after COVID-19.
-- **Statistical Analysis:** In addition to fitting binary classifiers, perform statistical tests (t-test, ANOVA, chi-square...) to account for significant shifts pre vs post covid, but also in control vs experimental group to isolate depression as the sole factor in emotion change.
+- **Statistical Analysis:** In addition to fitting binary classifiers, perform statistical tests (chi-square, Mann-Withney U) to account for significant shifts pre vs post covid, but also in control vs experimental group to isolate depression as the sole factor in emotion change.
 
 
 ## Reproducibility
