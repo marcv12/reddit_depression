@@ -74,20 +74,12 @@ By following these steps and using the provided scripts in the specified order, 
 
 - **roberta_model.py:** Functions similarly to roberta_model_probs.py but outputs a binary matrix for each emotion instead of specific probabilities. This script offers an alternative approach to emotion detection, which may be used for comparative analysis.
 
+- **statistical_tests_new.py:** This script performs statistical tests on the predicted datasets. It takes a command-line argument to specify the path of either the control group dataset ("predicted_dataset_control.csv") or the experimental group dataset ("predicted_dataset.csv"). The script outputs the results of the statistical tests for the specified group.
+
 ### Data Folder
-Contains several key files used and generated during the project:
+Contains several key files to start and the rest will be generated using the scripts during the project:
 
-- **fine_tuning_data.csv:** Compiled dataset ready for model fine-tuning, including both training and test data.
-
-- **fine_tuning_test.csv, fine_tuning_train.csv:** Separated test and training datasets derived from fine_tuning_data.csv, specifically structured for model training and evaluation phases.
-
-- **predicted_dataset.csv:** Contains predictions from the fine-tuned model applied to the Reddit dataset, detailing the emotional content of each post.
-
-- **reddit_control_posts.csv:** Dataset of posts from control subreddits, used to compare against the experimental group (depression-related posts).
-
-- **reddit_depression_posts.csv:** Dataset of posts from the r/depression subreddit, forming the core of our experimental data.
-
-- **reddit_predictions.csv:** Results of applying emotion detection models to the scraped Reddit datasets, offering insights into the prevalence and distribution of emotions in pre- and post-pandemic expressions of depression.
+- **train.json, validation.json, test.json:** The original DepressionEmo dataset files used for fine-tuning the Roberta model.
 
 
 
