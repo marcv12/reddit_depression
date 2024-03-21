@@ -70,13 +70,10 @@ By following these steps and using the provided scripts in the specified order, 
 
 - **reddit_scraper_control.py:** Similar to reddit_scraper.py, but focused on scraping data from various mental health subreddits other than r/depression. This data forms the control group, allowing us to differentiate between depression-specific expressions and general mental health discussions.
 
-- **roberta_model_probs.py:** Utilizes the Transformers library to import and fine-tune the Roberta model on our prepared dataset. The goal of this fine-tuning is to get our model to detect more specific negative emotions that are related to mental health disorders, rather than basic emotions. It evaluates the model's performance on a test set and applies it to the scraped Reddit dataset to predict the probability distribution of emotions in each post.
-
-- **roberta_model.py:** Functions similarly to roberta_model_probs.py but outputs a binary matrix for each emotion instead of specific probabilities. This script offers an alternative approach to emotion detection, which may be used for comparative analysis.
+- **roberta_model.py:** Utilizes the Transformers library to import and fine-tune the Roberta model on our prepared dataset. The goal of this fine-tuning is to get our model to detect more specific negative emotions that are related to mental health disorders, rather than basic emotions. It evaluates the model's performance on a test set and applies it to the scraped Reddit dataset to predict the probability distribution of emotions in each post.
 
 - **statistical_tests_new.py:** This script performs statistical tests on the predicted datasets. It takes a command-line argument to specify the path of either the control group dataset ("predicted_dataset_control.csv") or the experimental group dataset ("predicted_dataset.csv"). The script outputs the results of the statistical tests for the specified group.
 
-- **statistical_tests.py** You should run this script only if you go for the "roberta_model_probs.py" script.
 
 ### Data Folder
 Contains several key files to start and the rest will be generated using the scripts during the project:
