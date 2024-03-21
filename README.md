@@ -1,6 +1,5 @@
 <documents>
 <document index="1">
-<document_content>
 # Impact of COVID-19 on Linguistic Expression of Depression in Online Communities
 
 ## Research Question
@@ -90,6 +89,6 @@ Contains several key files used and generated during the project:
 - **reddit_predictions.csv:** Results of applying emotion detection models to the scraped Reddit datasets, offering insights into the prevalence and distribution of emotions in pre- and post-pandemic expressions of depression.
 
 
-</document_content>
+
 </document>
 </documents>
